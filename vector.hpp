@@ -148,45 +148,56 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	const value_type* data() const noexcept { return (_array); }
 
 	/*********** Modifiers ***********/
-	template <class InputIterator> void assign (InputIterator first, InputIterator last);//create std::enable_if et is_integral
-
-/*	template < class U >
-    void assign( U first,
-                 U last,
-                 typename ft::enable_if< !ft::is_integral< U >::value, U >::type
-                     * = 0 ) {
-        clear();
-        insert( begin(), first, last );
-    }
-
-    void assign( size_type n, const value_type &val ) {
-        clear();
-        insert( begin(), n, val );
-    }*/
-
-/*	template <class InputIterator>
-	 void		assign(InputIterator first, InputIterator last,
-	 					typename enable_if<!is_integral<InputIterator>::value, bool>::type = true)
-	 {
-		_m_assign_aux(first, last);
-     }
-
-	void 		assign(size_type n, const value_type& val)
+	template <class InputIterator> void assign (InputIterator first, InputIterator last)
 	{
 		clear();
-		_m_fill_insert(begin(), n, val);
-	}*/
+		insert(begin(), first, last);
+	}
+	void assign (size_type n, const value_type& val)
+	{
+		clear();
+		insert(begin(), n, val);
+	}
 
-	void assign (size_type n, const value_type& val);
-	void push_back (const value_type& val);
-	void pop_back();
+	void push_back (const value_type& val)
+	{
+		if (_filled_size == _maxsize)
+		{
+			_maxsize = _maxsize *2;
+			reserve(_maxsize);
+		}
+		_allocator.construct( _array + _filled_size, val );
+		_filled_size++;
+	}
+	void pop_back()
+	{
+		if (_filled_size > 0)
+		{
+			allocator.destroy(_array[_filled_size - 1]);
+			_filled_size--;
+		}
+	}
+
 	iterator insert (iterator position, const value_type& val);
 	void insert (iterator position, size_type n, const value_type& val);
 	template <class InputIterator> void insert (iterator position, InputIterator first, InputIterator last);
+
 	iterator erase (iterator position);
 	iterator erase (iterator first, iterator last);
+
 	void swap (vector& x);
-	void clear();
+
+	void clear()
+	{
+		iterator	start;
+		iterator	end;
+
+		start = begin();
+		end = end();
+		for ( ; start != end; start++)
+			allocator.destroy(&( *start ));
+		_filled_size = 0;
+	}
 
 	/*********** Allocator ***********/
 	allocator_type get_allocator() const;
