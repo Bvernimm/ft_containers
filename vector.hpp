@@ -1,7 +1,11 @@
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
 
-#include <iterator>
+#include "iterator.hpp"
+#include "algorithm.hpp"
+#include "type_traits.hpp"
+#include <algorithm>
+#include <iostream>
 
 namespace ft
 {
@@ -182,10 +186,26 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	void insert (iterator position, size_type n, const value_type& val);
 	template <class InputIterator> void insert (iterator position, InputIterator first, InputIterator last);
 
-	iterator erase (iterator position);
-	iterator erase (iterator first, iterator last);
+	iterator erase (iterator position)
+	{
+		erase (position, position + 1);
+		return position;
+	}
+	iterator erase (iterator first, iterator last)
+	{
+    	std::copy( last, end(), first );
+        ft::_destroy( first + ( end() - last ), end(), _allocator );
+        _size -= last - first;
+		return first;
+	}
 
-	void swap (vector& x);
+	void swap (vector& x)
+	{
+		ft::swap( _array, other._array );
+        ft::swap( _filled_size, other._filled_size );
+        ft::swap( _maxsize, other._maxsize );
+		ft::swap( _allocator, other._allocator );
+	}
 
 	void clear()
 	{
@@ -200,7 +220,7 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	}
 
 	/*********** Allocator ***********/
-	allocator_type get_allocator() const;
+	allocator_type get_allocator() const { return _allocator; }
 
 };
 template <class T, class Alloc>  bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs);
