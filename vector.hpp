@@ -4,8 +4,11 @@
 #include "iterator.hpp"
 #include "algorithm.hpp"
 #include "type_traits.hpp"
+#include "utility.hpp"
 #include <algorithm>
 #include <iostream>
+#include <iterator>
+#include <memory>
 
 namespace ft
 {
@@ -13,18 +16,18 @@ template < class T, class Alloc = std::allocator<T> > class vector
 {
 /********************** Member types **********************/
 	public:
-		typedef T										value_type;
-		typedef Alloc									allocator_type;
-		typedef allocator_type::reference				reference;
-		typedef allocator_type::const_reference			const_reference;
-		typedef allocator_type::pointer					pointer;
-		typedef allocator_type::const_pointer			const_pointer;
-		typedef std::iterator<value_type>				iterator;
-		typedef std::iterator<const value_type>			const_iterator;
-		typedef ft::reverse_iterator<value_type>		reverse_iterator;
-		typedef ft::reverse_iterator<const value_type>	const_reverse_iterator;
-		typedef std::ptrdiff_t							difference_type;
-		typedef std::size_t								size_type;
+		typedef T											value_type;
+		typedef Alloc										allocator_type;
+		typedef typename  allocator_type::reference			reference;
+		typedef typename  allocator_type::const_reference	const_reference;
+		typedef typename  allocator_type::pointer			pointer;
+		typedef typename  allocator_type::const_pointer		const_pointer;
+		typedef ft::iterator<value_type>					iterator;
+		typedef ft::iterator<const value_type>				const_iterator;
+		typedef ft::reverse_iterator<value_type>			reverse_iterator;
+		typedef ft::reverse_iterator<const value_type>		const_reverse_iterator;
+		typedef std::ptrdiff_t								difference_type;
+		typedef std::size_t									size_type;
 
 	protected:
 		allocator_type	_allocator;
@@ -33,6 +36,7 @@ template < class T, class Alloc = std::allocator<T> > class vector
 		size_type		_maxsize;
 
 /********************** Member functions **********************/
+	public:
 	/*********** Constructor/destructor ***********/
 	explicit vector (const allocator_type &alloc = allocator_type())
 	{
@@ -63,10 +67,10 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	}
 	vector (const vector &x)
 	{
-		_allocator = other._allocator;
-		_array = other._array;
-		_filled_size = other._filled_size;
-		_maxsize = other._maxsize;
+		_allocator = x._allocator;
+		_array = x._array;
+		_filled_size = x._filled_size;
+		_maxsize = x._maxsize;
 	}
 	~vector()
 	{
@@ -75,7 +79,7 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	}
 	vector &operator= (const vector& x)
 	{
-		assign(other.begin(), other.end());
+		assign(x.begin(), x.end());
 		return (*this);
 	}
 
@@ -128,7 +132,7 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	void reserve (size_type n)
 	{
 		if (n > max_size())
-			throws std::length_error();
+			throw std::length_error( "" );
 		if (n > _maxsize)
 		{
 			pointer	tmp = _allocator.allocate(n);
@@ -146,14 +150,14 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	reference at (size_type n)
 	{
 		if (n >= size())
-			throws std::out_of_range();
+			throw std::out_of_range( "" );
 		else
 			return (_array[n]);
 	}
 	const_reference at (size_type n) const
 	{
 		if (n >= size())
-			throws std::out_of_range();
+			throw std::out_of_range( "" );
 		else
 			return (_array[n]);
 	}
@@ -161,8 +165,8 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	const_reference front() const { return (*begin()); }
 	reference back() { return (*rbegin()); }
 	const_reference back() const { return (*rbegin()); }
-	value_type* data() noexcept { return (_array); }
-	const value_type* data() const noexcept { return (_array); }
+	value_type* data() { return (_array); }
+	const value_type* data() const { return (_array); }
 
 	/*********** Modifiers ***********/
 	template <class InputIterator> void assign (InputIterator first, InputIterator last)
@@ -190,7 +194,7 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	{
 		if (_filled_size > 0)
 		{
-			allocator.destroy(_array[_filled_size - 1]);
+			_allocator.destroy(_array[_filled_size - 1]);
 			_filled_size--;
 		}
 	}
@@ -239,18 +243,22 @@ template < class T, class Alloc = std::allocator<T> > class vector
 	}
 	iterator erase (iterator first, iterator last)
 	{
-    	std::copy( last, end(), first );
-        ft::_destroy( first + ( end() - last ), end(), _allocator );
-        _size -= last - first;
+		iterator	end;
+
+		end = end();
+    	std::copy( last, end, first );
+        _filled_size = _filled_size - (last - first);
+		for ( ; last != end; last++)
+			_allocator.destroy(last);
 		return first;
 	}
 
 	void swap (vector& x)
 	{
-		ft::swap( _array, other._array );
-        ft::swap( _filled_size, other._filled_size );
-        ft::swap( _maxsize, other._maxsize );
-		ft::swap( _allocator, other._allocator );
+		ft::swap( _array, x._array );
+        ft::swap( _filled_size, x._filled_size );
+        ft::swap( _maxsize, x._maxsize );
+		ft::swap( _allocator, x._allocator );
 	}
 
 	void clear()
@@ -261,7 +269,7 @@ template < class T, class Alloc = std::allocator<T> > class vector
 		start = begin();
 		end = end();
 		for ( ; start != end; start++)
-			allocator.destroy(&( *start ));
+			_allocator.destroy(&( *start ));
 		_filled_size = 0;
 	}
 

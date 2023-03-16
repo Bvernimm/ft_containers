@@ -74,6 +74,43 @@ template< class Iter > class reverse_iterator
 		reverse_iterator& operator-=( difference_type n ) { current += n; return (*this); }
 };
 
+template< class Iter > class iterator
+{
+	public:
+		typedef Iter								iterator_type;
+		typedef typename iterator_traits<Iter>::difference_type		difference_type;
+		typedef typename iterator_traits<Iter>::value_type			value_type;
+		typedef typename iterator_traits<Iter>::pointer				pointer;
+		typedef typename iterator_traits<Iter>::reference			reference;
+		typedef typename iterator_traits<Iter>::iterator_category	iterator_category;
+	protected:
+		Iter	current;
+	public:
+		iterator():current() {}
+		iterator(iterator_type x):current(x) {}
+		template <class U>
+		iterator(const iterator<U> &other):current(other.current) {}
+
+		template <class U>
+		iterator& operator=(const iterator<U> &other) {
+			current = other.current;
+			return *this;
+		}
+		iterator_type base() const { return current; }
+		reference operator*() const { return current; }
+		pointer operator->() const { return &(operator*()); }
+		reference operator[](difference_type n) const { return *(*this + n); }
+
+		iterator& operator++() { ++current; return (*this); }
+		iterator& operator--() { --current; return (*this); }
+		iterator operator++( int ) { iterator tmp(*this); ++current; return (tmp); }
+		iterator operator--( int ) { iterator tmp(*this); --current; return (tmp); }
+		iterator operator+( difference_type n ) const { return iterator(current + n); }
+		iterator operator-( difference_type n ) const { return iterator(current - n); }
+		iterator& operator+=( difference_type n ) { current += n; return (*this); }
+		iterator& operator-=( difference_type n ) { current -= n; return (*this); }
+};
+
 template< class Iterator1, class Iterator2 >
 bool operator==( const std::reverse_iterator<Iterator1>& lhs, const std::reverse_iterator<Iterator2>& rhs ) {
 	return (lhs.base() == rhs.base());

@@ -8,6 +8,16 @@ namespace ft
 template<bool Cond, class T = void > struct enable_if {};
 template<class T> struct enable_if<true, T> { typedef T type; };
 
+template <class T, T v>
+struct integral_constant
+{
+	static const T value = v;
+	typedef T value_type;
+	typedef integral_constant<T,v> type;
+};
+
+typedef integral_constant<bool, true> true_type;
+typedef integral_constant<bool, false> false_type;
 
 template <class T> struct is_integral						: public false_type{};
 
